@@ -1,0 +1,13 @@
+# Video/audio sources and editing outputs stay out of git - repo always clean
+edit/
+*.mp4
+*.mov
+*.mp3
+*.wav
+*.m4a
+
+# Local env / secrets
+.env
+
+# OS/editor cruft
+.DS_Store
