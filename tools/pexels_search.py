@@ -29,43 +29,21 @@ PowerShell (Windows), setting the key for this session only:
 """
 import argparse
 import json
-import os
 import sys
 import urllib.error
 import urllib.parse
 import urllib.request
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from pexels_common import require_key  # noqa: E402
+
 API_URL = "https://api.pexels.com/videos/search"
-SCRIPT_DIR = Path(__file__).resolve().parent
-CANDIDATE_ENV_FILES = [
-    SCRIPT_DIR / ".env",
-    Path.home() / "Developer" / "video-use" / ".env",
-]
 TARGET_ASPECT = 9 / 16  # Reels vertical target
 
 
-def load_key():
-    key = os.environ.get("PEXELS_API_KEY")
-    if key:
-        return key
-    for env_file in CANDIDATE_ENV_FILES:
-        if env_file.exists():
-            for line in env_file.read_text(encoding="utf-8").splitlines():
-                if line.startswith("PEXELS_API_KEY="):
-                    return line.split("=", 1)[1].strip()
-    return None
-
-
 def search(query: str, count: int, orientation: str) -> dict:
-    key = load_key()
-    if not key:
-        sys.exit(
-            "PEXELS_API_KEY not set.\n"
-            'PowerShell:  $env:PEXELS_API_KEY = "<your key>"\n'
-            f"or add a PEXELS_API_KEY=... line to one of:\n  "
-            + "\n  ".join(str(p) for p in CANDIDATE_ENV_FILES)
-        )
+    key = require_key()
     qs = urllib.parse.urlencode(
         {"query": query, "per_page": count, "orientation": orientation}
     )
