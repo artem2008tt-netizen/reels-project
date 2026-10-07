@@ -18,6 +18,7 @@ dist/
 out/
 whisper.cpp/
 transcripts/
+tmp/
 public/*
 !public/.gitkeep
 templates/*.bak

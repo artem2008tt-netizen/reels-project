@@ -14,7 +14,7 @@ if (!input || !fs.existsSync(input)) {
 
 const name = path.parse(input).name;
 fs.mkdirSync("transcripts", { recursive: true });
-const wav = path.join("transcripts", `${name}.wav`);
+const wav = path.resolve("transcripts", `${name}.wav`); // whisper запускается из своей папки — нужен полный путь
 
 // Whisper принимает только WAV 16 кГц моно
 execFileSync("ffmpeg", ["-y", "-loglevel", "error", "-i", input, "-vn", "-ar", "16000", "-ac", "1", wav]);
@@ -26,11 +26,23 @@ const whisperCppOutput = await transcribe({
   model: WHISPER_MODEL,
   language: "ru",
   tokenLevelTimestamps: true,
-  splitOnWord: true,
 });
 fs.rmSync(wav);
 
-const { captions } = toCaptions({ whisperCppOutput });
+const { captions: tokens } = toCaptions({ whisperCppOutput });
+
+// Whisper отдаёт кусочки слов («Р», «ед», «ак»); новое слово начинается с пробела — склеиваем в слова
+const captions = [];
+for (const t of tokens) {
+  const last = captions[captions.length - 1];
+  if (!last || t.text.startsWith(" ")) {
+    captions.push({ ...t });
+  } else {
+    last.text += t.text;
+    last.endMs = t.endMs;
+    last.confidence = Math.min(last.confidence ?? 1, t.confidence ?? 1);
+  }
+}
 const text = captions.map((c) => c.text).join("").trim();
 
 fs.writeFileSync(path.join("transcripts", `${name}.json`), JSON.stringify(captions, null, 2));
