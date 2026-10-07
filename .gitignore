@@ -11,3 +11,14 @@ edit/
 
 # OS/editor cruft
 .DS_Store
+
+# Remotion studio
+node_modules/
+dist/
+out/
+whisper.cpp/
+transcripts/
+public/*
+!public/.gitkeep
+templates/*.bak
+backups/
